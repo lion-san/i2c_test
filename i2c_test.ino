@@ -28,12 +28,8 @@
 #include <SPI.h>                                //SPIライブラリ
 #include <Wire.h>                               //I2Cライブラリ
 #include <SparkFunLSM9DS1.h>                  //LSM9DS1ライブラリ：https://github.com/sparkfun/LSM9DS1_Breakout
-#include<U8glib.h>                              //LCDフォントライブラリ：https://github.com/olikraus/u8glib
 
 
-
-
-U8GLIB_NHD_C12864 u8g(13, 11, 10, 9);  // SPI Com: SCK = 13, MOSI = 11, CS = 10, A0 = 9, RST = 8
 
 #define ADAddr 0x48
 #define PWR 8                                   //LCD用電源設定
@@ -61,68 +57,6 @@ float mzVal = 0;                                //Mag x 用データーレジス
 float hedVal = 0;                               //Hedding 用データーレジスタ
 
 //------------------------------------------------------------------------
-void u8g_ascii_1() {
-
-  //u8g.setFont(u8g_font_osb18);              　//フォントの選択
-  //u8g.setFont(u8g_font_10x20);
-  //u8g.setFont(u8g_font_unifont_18_19);
-  u8g.setFont(u8g_font_unifont);
-
-  //******** Gyro DATA **********
-  u8g.setPrintPos(0, 26);
-  u8g.print("G");
-
-  s =  gxVal ;
-  u8g.setPrintPos(6, 26);
-  u8g.print(s);
-
-  s =  gyVal ;
-  u8g.setPrintPos(52, 26);
-  u8g.print(s);
-
-  s =  gzVal ;
-  u8g.setPrintPos(95, 26);
-  u8g.print(s);
-
-  //******** AXIS DATA **********
-  u8g.setPrintPos(0, 38);
-  u8g.print("A");
-
-  s =  axVal ;
-  u8g.setPrintPos(6, 38);
-  u8g.print(s);
-
-  s =  ayVal ;
-  u8g.setPrintPos(52, 38);
-  u8g.print(s);
-
-  s =  azVal ;
-  u8g.setPrintPos(95, 38);
-  u8g.print(s);
-
-  //******** MAG DATA ***********
-  u8g.setPrintPos(0, 50);
-  u8g.print("M");
-
-  s =  mxVal ;
-  u8g.setPrintPos(6, 50);
-  u8g.print(s);
-
-  s =  myVal ;
-  u8g.setPrintPos(52, 50);
-  u8g.print(s);
-
-  s =  mzVal ;
-  u8g.setPrintPos(95, 50);
-  u8g.print(s);
-
-  //******** Hading ************
-
-  s = hedVal;
-  u8g.setPrintPos(6, 62);
-  u8g.print(s);
-
-}
 
 //----------------------------------------------------------------------
 void setup(void) {
@@ -134,21 +68,7 @@ void setup(void) {
   imu.settings.device.mAddress = LSM9DS1_M;
   imu.settings.device.agAddress = LSM9DS1_AG;
 
-  pinMode(PWR, OUTPUT);                                 //LCD用電源設定
-  digitalWrite(PWR, HIGH);                              //LCD電源　ON
-  // flip screen, if required
-  u8g.setRot180();                                      //LCD表示設定
 
-  // set SPI backup if required
-  //u8g.setHardwareBackup(u8g_backup_avr_spi);
-
-  // assign default color value
-  if ( u8g.getMode() == U8G_MODE_R3G3B2 )
-    u8g.setColorIndex(255);     // white
-  else if ( u8g.getMode() == U8G_MODE_GRAY2BIT )
-    u8g.setColorIndex(3);         // max intensity
-  else if ( u8g.getMode() == U8G_MODE_BW )
-    u8g.setColorIndex(1);         // pixel on
 
 
   if (!imu.begin())                                     //センサ接続エラー時の表示
@@ -168,22 +88,15 @@ void setup(void) {
 
 //-----------------------------------------------------------------
 void loop(void) {                               //LCD描画
-  // picture loop
-  u8g.firstPage();
-  do {
-    u8g_ascii_1();
-  } while ( u8g.nextPage() );
 
   // rebuild the picture after some delay
-  delay(100);
+  delay(1000);
 
   printGyro();  // Print "G: gx, gy, gz"　　　シリアルモニタ表示用フォーマット
   printAccel(); // Print "A: ax, ay, az"
   printMag();   // Print "M: mx, my, mz"
   printAttitude(imu.ax, imu.ay, imu.az, -imu.my, -imu.mx, imu.mz);
   Serial.println();
-
-  delay(PRINT_SPEED);
 
 }
 
@@ -203,10 +116,6 @@ void printGyro()
   Serial.print(imu.calcGyro(imu.gz), 2);
   Serial.println(" deg/s");
 
-  //------------　LCD表示用データ　Gyro/x,y,z　-----------
-  gxVal = (imu.calcGyro(imu.gx));
-  gyVal = (imu.calcGyro(imu.gy));
-  gzVal = (imu.calcGyro(imu.gz));
 
 
 #elif defined PRINT_RAW
@@ -237,10 +146,6 @@ void printAccel()
   Serial.println(" g");
 
 
-//************LCD表示用　Accel/x,y,z　DATA　  
-  axVal = (imu.calcGyro(imu.ax));
-  ayVal = (imu.calcGyro(imu.ay));
-  azVal = (imu.calcGyro(imu.az));
 
 
 #elif defined PRINT_RAW
@@ -266,12 +171,7 @@ void printMag()
   Serial.print(", ");
   Serial.print(imu.calcMag(imu.mz), 2);
   Serial.println(" gauss");
-
-//************　LCD表示用Mag x,y,z　************
-  mxVal = (imu.calcGyro(imu.mx));
-  myVal = (imu.calcGyro(imu.my));
-  mzVal = (imu.calcGyro(imu.mz));
-
+  
 #elif defined PRINT_RAW
   Serial.print(imu.mx);
   Serial.print(", ");
